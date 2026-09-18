@@ -10,17 +10,8 @@ from groq import Groq
 from docx import Document
 
 
-# ============================================================
-# 1. RESUME FOLDER
-# ============================================================
 
 resume_folder = Path("resumes")
-
-
-# ============================================================
-# 2. LOAD ENVIRONMENT VARIABLES
-# ============================================================
-
 load_dotenv()
 
 api_key = os.getenv("GROK_API_KEY")
@@ -30,19 +21,9 @@ if not api_key:
         "GROK API key not found. Please add it to your .env file."
     )
 
-
-# ============================================================
-# 3. GROQ CLIENT
-# ============================================================
-
 client = Groq(api_key=api_key)
 
 model = "openai/gpt-oss-120b"
-
-
-# ============================================================
-# 4. JOB DESCRIPTION
-# ============================================================
 
 job_description = """
 Software Engineer Intern
@@ -57,11 +38,7 @@ Requirements:
 - Good problem solving skills
 - Knowledge of Machine Learning is a plus
 """
-
-
-# ============================================================
-# 5. RESUME PYDANTIC MODEL
-# ============================================================
+# RESUME PYDANTIC MODEL
 
 class Resume(BaseModel):
     name: str
@@ -74,30 +51,17 @@ class Resume(BaseModel):
     achievements: Optional[list[str]] = None
     hobbies: Optional[list[str]] = None
 
-
-# ============================================================
-# 6. JOB MATCH PYDANTIC MODEL
-# ============================================================
-
 class JobMatch(BaseModel):
     match_percentage: int
     matched_skills: list[str] = Field(default_factory=list)
     missing_skills: list[str] = Field(default_factory=list)
     explanation: str
 
-
-# ============================================================
-# 7. CREATE JSON SCHEMAS
-# ============================================================
-
 resume_schema = Resume.model_json_schema()
 
 match_schema = JobMatch.model_json_schema()
 
 
-# ============================================================
-# 8. CHECK RESUME FOLDER
-# ============================================================
 
 if not resume_folder.exists():
     raise FileNotFoundError(
@@ -105,10 +69,6 @@ if not resume_folder.exists():
         "Please create a 'resumes' folder inside the project."
     )
 
-
-# ============================================================
-# 9. FIND ALL PDF AND DOCX RESUMES
-# ============================================================
 
 resume_files = (
     list(resume_folder.glob("*.pdf"))
@@ -123,17 +83,10 @@ if not resume_files:
 print(f"Found {len(resume_files)} resume(s).")
 
 
-# ============================================================
-# 10. TEXT EXTRACTION FUNCTION
-# ============================================================
-
 def extract_text(file_path: Path) -> str:
 
     extension = file_path.suffix.lower()
 
-    # --------------------------------------------------------
-    # PDF
-    # --------------------------------------------------------
 
     if extension == ".pdf":
 
@@ -150,10 +103,6 @@ def extract_text(file_path: Path) -> str:
 
         return text
 
-
-    # --------------------------------------------------------
-    # DOCX
-    # --------------------------------------------------------
 
     elif extension == ".docx":
 
@@ -184,22 +133,12 @@ def extract_text(file_path: Path) -> str:
 
         return text
 
-
-    # --------------------------------------------------------
-    # Unsupported format
-    # --------------------------------------------------------
-
     else:
 
         raise ValueError(
             "Unsupported file format. "
             "Only PDF and DOCX are supported."
         )
-
-
-# ============================================================
-# 11. PROCESS EACH RESUME
-# ============================================================
 
 for resume_file in resume_files:
 
@@ -208,10 +147,6 @@ for resume_file in resume_files:
     print(f"PROCESSING: {resume_file.name}")
     print("=" * 70)
 
-
-    # --------------------------------------------------------
-    # Extract resume text
-    # --------------------------------------------------------
 
     resume_text = extract_text(resume_file)
 
@@ -222,9 +157,7 @@ for resume_file in resume_files:
         continue
 
 
-    # ========================================================
-    # PART A — EXTRACT RESUME INFORMATION
-    # ========================================================
+
 
     resume_response_format = {
 
@@ -282,9 +215,7 @@ for resume_file in resume_files:
     print(resume)
 
 
-    # ========================================================
-    # PART B — MATCH RESUME WITH JOB DESCRIPTION
-    # ========================================================
+
 
     match_response_format = {
 
@@ -359,10 +290,6 @@ CANDIDATE RESUME:
 
     match = JobMatch.model_validate(match_data)
 
-
-    # ========================================================
-    # PART C — DISPLAY MATCH RESULT
-    # ========================================================
 
     print("\n--- JOB MATCH RESULT ---")
 
